@@ -18,8 +18,6 @@ enum lista_estados{
   COCHE_FUERA = 5
 };
 
-int estado = COCHE_FUERA;
-
 
 /************************* WiFi Access Point *********************************/
 
@@ -59,9 +57,6 @@ extern Adafruit_MQTT_Publish potencia_cargador;
 extern Adafruit_MQTT_Publish tiempo_carga;
 extern Adafruit_MQTT_Publish potencia_acum;
 
-const int INICIA_CARGA = 1;
-const int TERMINA_CARGA = 2;
-
 struct programa_carga{
   int hora_inicio = 17;
   int min_inicio = 5;
@@ -73,14 +68,36 @@ struct programa_carga{
 };
 
 programa_carga programa;
-int orden = 0;
+
+class Estado{
+  int estado_inicial;
+  int estado_actual;
+
+  private:
+    void desconectado(void);
+    void coche_fuera(int luz);
+    void cargando_tiempo(void);
+    void cargando_usuario(void);
+    void coche_aparcado(void);
+
+  public:
+
+  Estado(int estado_inicial = COCHE_FUERA);
+
+  void set_estado_actual(int estado_actual);
+  int get_estado_actual(void);
+  void avanzar_estado(void);
+  
+};
+
+Estado maquina_estados;
 
 int tiempo_inicio_carga;
 int potencia_acumulada = 0;
 
 void empezar_carga(void){
-  if(estado == COCHE_APARCADO){
-    estado = CARGANDO_TIEMPO;
+  if(maquina_estados.get_estado_actual() == COCHE_APARCADO){
+    maquina_estados.set_estado_actual(CARGANDO_TIEMPO);
     publicar_evento(aviso_carga, "comienza carga programada por franja horaria"); 
 
     tiempo_inicio_carga = millis();
@@ -89,8 +106,9 @@ void empezar_carga(void){
 }
 
 void terminar_carga(void){
-  if(estado == CARGANDO_TIEMPO){
-    estado = COCHE_APARCADO;
+  if(maquina_estados.get_estado_actual() == CARGANDO_TIEMPO){
+    maquina_estados.set_estado_actual(COCHE_APARCADO);
+    
     publicar_evento(aviso_carga, "termina carga por final de franja programada");
   }
 }
@@ -138,76 +156,8 @@ void loop() {
   
   int luz = lee_sensor(SENSORLUZ);
   muestra_sensores(luz);
-  
-  if(estado == COCHE_FUERA){
-    if(luz > 823){
-      estado = COCHE_APARCADO;
-      publicar_evento(coche_llegasale, "llega coche");
-    }
-    else{
-      publicar_evento(coche_aparcado, "coche fuera");
-    }
-  }
-  
-  else if(estado == COCHE_APARCADO){
-    //Inicia la carga
-    if(orden == INICIA_CARGA){
-      estado = CARGANDO_USUARIO;
-      publicar_evento(aviso_carga, "comienza carga por orden del usuario");
-     
-      tiempo_inicio_carga = millis();
-      potencia_acumulada = 0;
-      orden = 0;
-    }
-    //Consideramos que el coche ha salido cuando la luz es demasiado baja
-    else if(luz < 600){
-      estado = COCHE_FUERA;
-      publicar_evento(coche_llegasale, "sale_coche");
-    }
-    else{
-      publicar_evento(coche_aparcado, "coche aparcado y desconectado");
-    }
-  }
 
-  
-  else if(estado == CARGANDO_USUARIO){
-    if(orden == TERMINA_CARGA){
-      estado = COCHE_APARCADO;
-      publicar_evento(aviso_carga, "termina carga por orden del usuario");
-      orden = 0;
-    }
-    else if(potencia_acumulada >= programa.potencia){
-      estado = COCHE_APARCADO;
-      publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
-    }
-  }
-  else if(estado == CARGANDO_TIEMPO){
-    if(potencia_acumulada >= programa.potencia){
-      estado = COCHE_APARCADO;
-      publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
-    }
-  }
-  
-  if(estado != CARGANDO_USUARIO && estado != CARGANDO_TIEMPO){
-    publicar_evento(potencia_instantanea, "0");
-  }
-  else{
-      int tiempo_carga = (millis() - tiempo_inicio_carga)/(1000*60);
-      potencia_acumulada += 100;
-      char mensaje[100];
-      float potencia_kwh = (float) potencia_acumulada / 1000.0;
-
-      char potencia_str[10];
-
-      snprintf(mensaje, 100, "coche cargando. Tiempo de carga: %d minutos. Potencia acumulada: %f", tiempo_carga, potencia_kwh);
-      snprintf(potencia_str, 10, "%d", potencia_acumulada);
-
-      
-      publicar_evento(coche_aparcado, mensaje);
-      publicar_evento(potencia_acum, potencia_str);
-
-      publicar_evento(potencia_instantanea, "4");
-    }
+  maquina_estados.avanzar_estado();
   
   
   publicar_evento(potencia_cargador, "4");
