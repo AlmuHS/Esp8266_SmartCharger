@@ -1,7 +1,9 @@
-#include <ESP8266WiFi.h>
-#include "Adafruit_MQTT.h"
-#include "Adafruit_MQTT_Client.h"
+/************************* Adafruit.io Setup *********************************/
 
+#define AIO_SERVER      "192.168.1.122"
+#define AIO_SERVERPORT  1883                   // use 8883 for SSL
+#define AIO_USERNAME    "usuario"
+#define AIO_KEY         "usuario"
 
 // Create an ESP8266 WiFiClient class to connect to the MQTT server.
 WiFiClient client;
@@ -21,7 +23,7 @@ Adafruit_MQTT_Subscribe pregunta_potencia = Adafruit_MQTT_Subscribe(&mqtt, AIO_U
 //************************************* Publicaciones *******************************************************
 Adafruit_MQTT_Publish aviso_carga = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/carga_inicia_fin");
 Adafruit_MQTT_Publish coche_llegasale = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/coche");
-Adafruit_MQTT_Publish coche_aparcado = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/estado_coche");
+Adafruit_MQTT_Publish coche_aparca = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/estado_coche");
 Adafruit_MQTT_Publish potencia_instantanea = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/potencia_instantanea");
 Adafruit_MQTT_Publish potencia_cargador = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/potencia_cargador");
 Adafruit_MQTT_Publish tiempo_carga = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/coche_aparcado/tiempo_carga");
@@ -36,8 +38,6 @@ void hora_inicio_callback(char* hora, short unsigned int longitud) {
 
   programa.hora_inicio = hora_minuto[0];
   programa.min_inicio = hora_minuto[1];
-  
-  Alarm.alarmOnce(hora_minuto[0], hora_minuto[1], 0, empezar_carga);
 }
 
 void hora_fin_callback(char* hora, short unsigned int longitud){
@@ -50,8 +50,6 @@ void hora_fin_callback(char* hora, short unsigned int longitud){
 
   programa.hora_fin = hora_minuto[0];
   programa.min_fin = hora_minuto[1];
-  
-  Alarm.alarmOnce(hora_minuto[0], hora_minuto[1], 0, terminar_carga); 
 }
 
 void potencia_callback(uint32_t potencia){
@@ -91,27 +89,6 @@ void MQTT_connect() {
        }
   }
   Serial.println("MQTT Connected!");
-}
-
-void conectarWiFi(){
-  Serial.print("Connecting to ");
-  Serial.println(WLAN_SSID);
-
-  /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
-     would try to act as both a client and an access-point and could cause
-     network-issues with your other WiFi-devices on your WiFi-network. */
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WLAN_SSID, WLAN_PASS);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 bool publicar_evento(Adafruit_MQTT_Publish evento, char* mensaje){
