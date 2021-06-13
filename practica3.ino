@@ -23,12 +23,12 @@ extern Adafruit_MQTT_Subscribe pregunta_potencia;
 
 class Estado{
   private:
-    int estado_inicial;
-    int estado_actual;
+    lista_estados estado_inicial;
+    lista_estados estado_actual;
     int tiempo_inicio_carga;
 
     void desconectado(void);
-    void coche_fuera(int luz);
+    void coche_fuera(void);
     void cargando_tiempo(void);
     void cargando_usuario(void);
     void coche_aparcado(void);
@@ -37,7 +37,7 @@ class Estado{
     void terminar_carga_programada(void);
 
   public:
-    Estado(int estado_inicial = COCHE_FUERA);
+    Estado(lista_estados estado_inicial = COCHE_FUERA);
     void avanzar_estado(void);
   
 };

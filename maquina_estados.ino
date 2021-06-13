@@ -10,20 +10,21 @@ int potencia_acumulada = 0;
 
 programa_carga programa;
 
-int luz;
-
 const int MAX_LUZ = 980;
 const int MIN_LUZ = 860;
 
-const int INICIA_CARGA = 1;
-const int TERMINA_CARGA = 2;
+enum tipo_orden{
+  ESPERA = 0,
+  INICIA_CARGA = 1,
+  TERMINA_CARGA = 2
+};
 
-int orden = 0;
+tipo_orden orden = ESPERA;
 
 /* IMPLEMENTACION DE LA MAQUINA DE ESTADOS */
 /* ******************************************* */
 
-Estado::Estado(int estado_inicial){
+Estado::Estado(lista_estados estado_inicial){
   this->estado_inicial = estado_inicial;
   this->estado_actual = estado_inicial;
 }
@@ -32,7 +33,9 @@ void Estado::desconectado(void){
   
 }
 
-void Estado::coche_fuera(int luz){
+void Estado::coche_fuera(void){
+  int luz = lee_sensor(SENSORLUZ);
+  
   if(luz > MAX_LUZ){
       this->estado_actual = COCHE_APARCADO;
       publicar_evento(coche_llegasale, "llega coche");
@@ -80,7 +83,7 @@ void Estado::cargando_usuario(void){
   if(orden == TERMINA_CARGA){
       this->estado_actual = COCHE_APARCADO;
       publicar_evento(aviso_carga, "termina carga por orden del usuario");
-      orden = 0;
+      orden = ESPERA;
   }
   else if(potencia_acumulada >= programa.potencia){
     this->estado_actual = COCHE_APARCADO;
@@ -112,6 +115,8 @@ void Estado::cargar(void){
 void Estado::coche_aparcado(void){
   int hora_actual = timeClient.getHours();
   int min_actual = timeClient.getMinutes();
+
+  int luz = lee_sensor(SENSORLUZ);
   
   //Inicia la carga
   if(orden == INICIA_CARGA){
@@ -120,7 +125,7 @@ void Estado::coche_aparcado(void){
    
     tiempo_inicio_carga = millis();
     potencia_acumulada = 0;
-    orden = 0;
+    orden = ESPERA;
   }
   else if((hora_actual == programa.hora_inicio) && (min_actual == programa.min_inicio) && (luz >= MIN_LUZ)){
     this->empezar_carga_programada(); 
@@ -136,8 +141,6 @@ void Estado::coche_aparcado(void){
 }
 
 void Estado::avanzar_estado(void){
-  luz = lee_sensor(SENSORLUZ);
-
   switch(this->estado_actual){
     case DESCONECTADO:
       this->desconectado();
@@ -160,7 +163,7 @@ void Estado::avanzar_estado(void){
       break;
 
     case COCHE_FUERA:
-      this->coche_fuera(luz);
+      this->coche_fuera();
 
       break;
   }

@@ -59,7 +59,7 @@ void potencia_callback(uint32_t potencia){
 
 
 void orden_callback(uint32_t _orden){
-  orden = _orden;
+  orden = (tipo_orden) _orden;
   Serial.println(orden);
 }
 
