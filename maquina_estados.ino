@@ -13,8 +13,8 @@ extern int potencia_acumulada;
 
 int luz;
 
-const int MAX_LUZ = 823;
-const int MIN_LUZ = 600;
+const int MAX_LUZ = 980;
+const int MIN_LUZ = 860;
 
 const int INICIA_CARGA = 1;
 const int TERMINA_CARGA = 2;
@@ -23,6 +23,7 @@ int orden = INICIA_CARGA;
 
 Estado::Estado(int estado_inicial){
   this->estado_inicial = estado_inicial;
+  this->estado_actual = estado_inicial;
 }
 
 void Estado::desconectado(void){
@@ -40,22 +41,9 @@ void Estado::coche_fuera(int luz){
 }
 
 void Estado::cargando_tiempo(void){
-    //Inicia la carga
-    if(orden == INICIA_CARGA){
-      this->estado_actual = CARGANDO_USUARIO;
-      publicar_evento(aviso_carga, "comienza carga por orden del usuario");
-     
-      tiempo_inicio_carga = millis();
-      potencia_acumulada = 0;
-      orden = 0;
-    }
-    //Consideramos que el coche ha salido cuando la luz es demasiado baja
-    else if(luz < MIN_LUZ){
-      this->estado_actual = COCHE_FUERA;
-      publicar_evento(coche_llegasale, "sale_coche");
-    }
-    else{
-      publicar_evento(coche_aparca, "coche aparcado y desconectado");
+    if(potencia_acumulada >= programa.potencia){
+      this->estado_actual = COCHE_APARCADO;
+      publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
     }
 }
 
@@ -82,7 +70,7 @@ void Estado::coche_aparcado(void){
     orden = 0;
   }
   //Consideramos que el coche ha salido cuando la luz es demasiado baja
-  else if(luz < 600){
+  else if(luz < MIN_LUZ){
     this->estado_actual = COCHE_FUERA;
     publicar_evento(coche_llegasale, "sale_coche");
   }
