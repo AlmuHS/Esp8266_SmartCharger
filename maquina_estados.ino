@@ -29,8 +29,16 @@ Estado::Estado(lista_estados estado_inicial){
   this->estado_actual = estado_inicial;
 }
 
-void Estado::desconectado(void){
-  
+void Estado::indeterminado(void){
+  int luz = lee_sensor(SENSORLUZ);
+  if(luz > MAX_LUZ){
+    this->estado_actual = COCHE_APARCADO;
+    publicar_evento(coche_llegasale, "coche aparcado");
+  }
+  else{
+    this->estado_actual = COCHE_FUERA;
+    publicar_evento(coche_aparca, "coche fuera");
+  }
 }
 
 void Estado::coche_fuera(void){
@@ -39,21 +47,17 @@ void Estado::coche_fuera(void){
   if(luz > MAX_LUZ){
       this->estado_actual = COCHE_APARCADO;
       publicar_evento(coche_llegasale, "llega coche");
-    }
-    else{
-      publicar_evento(coche_aparca, "coche fuera");
-    }
+  }
+  else{
+    publicar_evento(coche_aparca, "coche fuera");
+  }
 }
 
-void Estado::cargando_tiempo(void){
+void Estado::cargando_programado(void){
   int hora_actual = timeClient.getHours();
   int min_actual = timeClient.getMinutes();
   
-  if(potencia_acumulada >= programa.potencia){
-    this->estado_actual = COCHE_APARCADO;
-    publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
-  }
-  else if(programa.hora_fin == hora_actual && programa.min_fin == min_actual){
+  if(programa.hora_fin == hora_actual && programa.min_fin == min_actual){
     this->terminar_carga_programada();
   }
   else{
@@ -64,7 +68,7 @@ void Estado::cargando_tiempo(void){
 void Estado::empezar_carga_programada(void){
   Serial.println("Activada alarma de inicio de carga programada");
   
-  this->estado_actual = CARGANDO_TIEMPO;
+  this->estado_actual = CARGANDO_PROGRAMADO;
   publicar_evento(aviso_carga, "comienza carga programada por franja horaria"); 
 
   this->tiempo_inicio_carga = millis();
@@ -80,18 +84,7 @@ void Estado::terminar_carga_programada(void){
 }
 
 void Estado::cargando_usuario(void){
-  if(orden == TERMINA_CARGA){
-      this->estado_actual = COCHE_APARCADO;
-      publicar_evento(aviso_carga, "termina carga por orden del usuario");
-      orden = ESPERA;
-  }
-  else if(potencia_acumulada >= programa.potencia){
-    this->estado_actual = COCHE_APARCADO;
-    publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
-  }
-  else{
-    this->cargar();
-  }
+  this->cargar();
 }
 
 void Estado::cargar(void){
@@ -105,11 +98,20 @@ void Estado::cargar(void){
   snprintf(mensaje, 100, "coche cargando. Tiempo de carga: %d minutos. Potencia acumulada: %f", tiempo_carga, potencia_kwh);
   snprintf(potencia_str, 10, "%d", potencia_acumulada);
 
-  
   publicar_evento(coche_aparca, mensaje);
   publicar_evento(potencia_acum, potencia_str);
 
   publicar_evento(potencia_instantanea, "4");
+
+  if(orden == TERMINA_CARGA){
+      this->estado_actual = COCHE_APARCADO;
+      publicar_evento(aviso_carga, "termina carga por orden del usuario");
+      orden = ESPERA;
+  }
+  else if(potencia_acumulada >= programa.potencia){
+    this->estado_actual = COCHE_APARCADO;
+    publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
+  }
 }
 
 void Estado::coche_aparcado(void){
@@ -142,8 +144,8 @@ void Estado::coche_aparcado(void){
 
 void Estado::avanzar_estado(void){
   switch(this->estado_actual){
-    case DESCONECTADO:
-      this->desconectado();
+    case INDETERMINADO:
+      this->indeterminado();
 
       break;
       
@@ -152,8 +154,8 @@ void Estado::avanzar_estado(void){
 
       break;
 
-    case CARGANDO_TIEMPO:
-      this->cargando_tiempo();
+    case CARGANDO_PROGRAMADO:
+      this->cargando_programado();
 
       break;
 
@@ -168,7 +170,7 @@ void Estado::avanzar_estado(void){
       break;
   }
   
-  if(this->estado_actual != CARGANDO_USUARIO && this->estado_actual != CARGANDO_TIEMPO)
+  if(this->estado_actual != CARGANDO_USUARIO && this->estado_actual != CARGANDO_PROGRAMADO)
     publicar_evento(potencia_instantanea, "0");
       
   publicar_evento(potencia_cargador, "4");

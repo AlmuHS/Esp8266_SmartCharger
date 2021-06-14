@@ -7,9 +7,9 @@ const int SENSORLUZ = A0;
 const int NUM_MEDIDAS = 10;
 
 enum lista_estados{
-  DESCONECTADO = 1,
+  INDETERMINADO = 1,
   COCHE_APARCADO = 2,
-  CARGANDO_TIEMPO = 3,
+  CARGANDO_PROGRAMADO = 3,
   CARGANDO_USUARIO = 4,
   COCHE_FUERA = 5
 };
@@ -27,9 +27,9 @@ class Estado{
     lista_estados estado_actual;
     int tiempo_inicio_carga;
 
-    void desconectado(void);
+    void indeterminado(void);
     void coche_fuera(void);
-    void cargando_tiempo(void);
+    void cargando_programado(void);
     void cargando_usuario(void);
     void coche_aparcado(void);
     void cargar(void);
@@ -37,7 +37,7 @@ class Estado{
     void terminar_carga_programada(void);
 
   public:
-    Estado(lista_estados estado_inicial = COCHE_FUERA);
+    Estado(lista_estados estado_inicial = INDETERMINADO);
     void avanzar_estado(void);
   
 };
