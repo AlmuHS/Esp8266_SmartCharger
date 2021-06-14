@@ -3,10 +3,10 @@
 //Create a ntp cliente via udp
 WiFiUDP ntpUDP;
 
-// By default 'pool.ntp.org' is used with 60 seconds update interval and
-// no offset
+// Establece un cliente NTP para la hora española, aplicando un offset de 7200 minutos sobre la hora UTC
 NTPClient timeClient(ntpUDP, "hora.roa.es", 7200);
 
+// Descompone una hora dada en formato HH:MM en hora y minuto
 void descomponer_hora_minuto(char hora_minuto_str[6], int hora_minuto[2]){
   int hora = (hora_minuto_str[0] - 48) * 10;
       hora += (hora_minuto_str[1] - 48);
@@ -18,6 +18,7 @@ void descomponer_hora_minuto(char hora_minuto_str[6], int hora_minuto[2]){
   hora_minuto[1] = minuto;
 }
 
+// Obtiene la hora actual mediante una llamada NTP, y la muestra en formato HH:MM
 void mostrar_hora_actual(void){
   timeClient.update();
   char hourminutes[15] = "";

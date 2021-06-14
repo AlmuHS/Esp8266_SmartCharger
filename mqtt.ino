@@ -1,6 +1,6 @@
 /************************* Adafruit.io Setup *********************************/
 
-#define AIO_SERVER      "192.168.1.122"
+#define AIO_SERVER      "192.168.1.105"
 #define AIO_SERVERPORT  1883                   // use 8883 for SSL
 #define AIO_USERNAME    "usuario"
 #define AIO_KEY         "usuario"
@@ -29,36 +29,48 @@ Adafruit_MQTT_Publish potencia_cargador = Adafruit_MQTT_Publish(&mqtt, AIO_USERN
 Adafruit_MQTT_Publish tiempo_carga = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/coche_aparcado/tiempo_carga");
 Adafruit_MQTT_Publish potencia_acum = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/cargador/coche_aparcado/potencia_acum");
 
+
+// Función asociada al mensaje de hora_inicio_carga. Recibe la hora de inicio de carga en formato HH:MM y la configura en el cargador
 void hora_inicio_callback(char* hora, short unsigned int longitud) {
   Serial.print("Carga programada inicia a hora ");
   Serial.println(hora);
-  
-  int hora_minuto[2];
+
+  // Descompone la cadena HH:MM en hora y minuto
+  int hora_minuto[2]; //La primera posición almacena la hora, la segunda el minuto
   descomponer_hora_minuto(hora, hora_minuto);
 
+  // Graba la hora y minuto de inicio en el programador
   programa.hora_inicio = hora_minuto[0];
   programa.min_inicio = hora_minuto[1];
 }
 
+// Función asociada al mensaje de hora_fin_carga. Recibe la hora de inicio de carga en formato HH:MM y la configura en el cargador
 void hora_fin_callback(char* hora, short unsigned int longitud){
   Serial.print("Carga programada finaliza a hora ");
   Serial.println(hora);
-  
+
+  // Descompone la cadena HH:MM en hora y minuto
   int hora_minuto[2];
-  
   descomponer_hora_minuto(hora, hora_minuto);
 
+  // Graba la hora y minuto de inicio en el programador
   programa.hora_fin = hora_minuto[0];
   programa.min_fin = hora_minuto[1];
 }
 
+// Función asociada al mensaje de pregunta_potencia. Recibe la potencia requerida para la carga de la batería, y la configura en el cargador
 void potencia_callback(uint32_t potencia){
     Serial.println(potencia);
+
+    // Graba la potencia requerida en el programador
     programa.potencia = potencia;
 }
 
 
+// Función asociada al mensaje de orden_carga. Recibe la orden de iniciar o finalizar la carga (1 = iniciar, 2 = finalizar)
 void orden_callback(uint32_t _orden){
+
+  // Asigna la orden para la máquina de estados del cargador
   orden = (tipo_orden) _orden;
   Serial.println(orden);
 }
@@ -91,6 +103,8 @@ void MQTT_connect() {
   Serial.println("MQTT Connected!");
 }
 
+// Función genérica encargada de publicar mensajes en el objeto MQTT indicado. 
+// Recibe por parámetro el objeto MQTT del canal donde queremos publicar, y el mensaje que queremos enviar por dicho canal
 bool publicar_evento(Adafruit_MQTT_Publish evento, char* mensaje){
   bool publicado = false;
   

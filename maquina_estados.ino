@@ -29,6 +29,7 @@ Estado::Estado(lista_estados estado_inicial){
   this->estado_actual = estado_inicial;
 }
 
+// Implementación del estado "indeterminado". Este estado se utiliza como punto de partida, para descubrir la situación inicial
 void Estado::indeterminado(void){
   int luz = lee_sensor(SENSORLUZ);
   if(luz > MAX_LUZ){
@@ -41,9 +42,11 @@ void Estado::indeterminado(void){
   }
 }
 
+// Implementación del estado "coche fuera"
 void Estado::coche_fuera(void){
   int luz = lee_sensor(SENSORLUZ);
-  
+
+  // Si el nivel de luz es alto, asumimos que el coche ha llegado
   if(luz > MAX_LUZ){
       this->estado_actual = COCHE_APARCADO;
       publicar_evento(coche_llegasale, "llega coche");
@@ -53,48 +56,55 @@ void Estado::coche_fuera(void){
   }
 }
 
-void Estado::cargando_programado(void){
+// Implementación del estado "coche aparcado"
+void Estado::coche_aparcado(void){
   int hora_actual = timeClient.getHours();
   int min_actual = timeClient.getMinutes();
+
+  int luz = lee_sensor(SENSORLUZ);
   
-  if(programa.hora_fin == hora_actual && programa.min_fin == min_actual){
-    this->terminar_carga_programada();
+  // Si el usuario da la orden de iniciar la carga, dado que el coche está presente, comenzará dicha carga
+  if(orden == INICIA_CARGA){
+    this->estado_actual = CARGANDO_USUARIO;
+    publicar_evento(aviso_carga, "comienza carga por orden del usuario");
+
+    // Anotamos la hora de inicio de la carga
+    tiempo_inicio_carga = millis();
+
+    // Establecemos que, al inicio, la potencia acumulada será 0
+    potencia_acumulada = 0;
+
+    // Reseteamos la orden, para que no se vuelva a ejecutar
+    orden = ESPERA;
+  }
+
+  // Si el coche sigue presente, y estamos dentro del rango horario de carga programada, inicia la carga
+  else if((hora_actual == programa.hora_inicio) && (min_actual == programa.min_inicio) && (luz >= MIN_LUZ)){
+    this->empezar_carga_programada(); 
+  }
+  // Si la luz es baja, consideramos que el coche se ha ido
+  else if(luz < MIN_LUZ){
+    this->estado_actual = COCHE_FUERA;
+    publicar_evento(coche_llegasale, "sale_coche");
   }
   else{
-    this->cargar();
+    publicar_evento(coche_aparca, "coche aparcado y desconectado");
   }
 }
 
-void Estado::empezar_carga_programada(void){
-  Serial.println("Activada alarma de inicio de carga programada");
-  
-  this->estado_actual = CARGANDO_PROGRAMADO;
-  publicar_evento(aviso_carga, "comienza carga programada por franja horaria"); 
-
-  this->tiempo_inicio_carga = millis();
-  potencia_acumulada = 0;
-}
-
-void Estado::terminar_carga_programada(void){
-  Serial.println("Activada alarma de fin de carga programada");
-  
-  this->estado_actual = COCHE_APARCADO;
-    
-  publicar_evento(aviso_carga, "termina carga por final de franja programada");
-}
-
-void Estado::cargando_usuario(void){
-  this->cargar();
-}
-
+// Implementa la carga del coche
 void Estado::cargar(void){
+
+  // Obtiene el tiempo de carga, restando el tiempo actual (ms desde que arrancó el sistema) al tiempo de inicio de la carga
   int tiempo_carga = (millis() - tiempo_inicio_carga)/(1000*60);
+
+  // Aumentamos la potencia acumulada por el cargador
   potencia_acumulada += 100;
   char mensaje[100];
   float potencia_kwh = (float) potencia_acumulada / 1000.0;
 
+  // Informamos sobre el tiempo de carga y la potencia acumulada
   char potencia_str[10];
-
   snprintf(mensaje, 100, "coche cargando. Tiempo de carga: %d minutos. Potencia acumulada: %f", tiempo_carga, potencia_kwh);
   snprintf(potencia_str, 10, "%d", potencia_acumulada);
 
@@ -108,40 +118,52 @@ void Estado::cargar(void){
       publicar_evento(aviso_carga, "termina carga por orden del usuario");
       orden = ESPERA;
   }
+  // Si la potencia acumulada ha llegado al nivel de potencia requerida en el programador, finalizamos la carga
   else if(potencia_acumulada >= programa.potencia){
     this->estado_actual = COCHE_APARCADO;
     publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
   }
 }
 
-void Estado::coche_aparcado(void){
+// Función auxiliar para iniciar la carga programada
+void Estado::empezar_carga_programada(void){
+  Serial.println("Activada alarma de inicio de carga programada");
+  
+  this->estado_actual = CARGANDO_PROGRAMADO;
+  publicar_evento(aviso_carga, "comienza carga programada por franja horaria"); 
+
+  this->tiempo_inicio_carga = millis();
+  potencia_acumulada = 0;
+}
+
+// Implementación del estado de carga programada
+void Estado::cargando_programado(void){
   int hora_actual = timeClient.getHours();
   int min_actual = timeClient.getMinutes();
-
-  int luz = lee_sensor(SENSORLUZ);
   
-  //Inicia la carga
-  if(orden == INICIA_CARGA){
-    this->estado_actual = CARGANDO_USUARIO;
-    publicar_evento(aviso_carga, "comienza carga por orden del usuario");
-   
-    tiempo_inicio_carga = millis();
-    potencia_acumulada = 0;
-    orden = ESPERA;
-  }
-  else if((hora_actual == programa.hora_inicio) && (min_actual == programa.min_inicio) && (luz >= MIN_LUZ)){
-    this->empezar_carga_programada(); 
-  }
-  //Consideramos que el coche ha salido cuando la luz es demasiado baja
-  else if(luz < MIN_LUZ){
-    this->estado_actual = COCHE_FUERA;
-    publicar_evento(coche_llegasale, "sale_coche");
+  if(programa.hora_fin == hora_actual && programa.min_fin == min_actual){
+    this->terminar_carga_programada();
   }
   else{
-    publicar_evento(coche_aparca, "coche aparcado y desconectado");
+    this->cargar();
   }
 }
 
+// Función auxiliar para terminar la carga programada
+void Estado::terminar_carga_programada(void){
+  Serial.println("Activada alarma de fin de carga programada");
+  
+  this->estado_actual = COCHE_APARCADO;
+    
+  publicar_evento(aviso_carga, "termina carga por final de franja programada");
+}
+
+// Implementación del estado de carga solicitada por el usuario
+void Estado::cargando_usuario(void){
+  this->cargar();
+}
+
+// Implementación de la máquina de estados, controlada por lista de estados
 void Estado::avanzar_estado(void){
   switch(this->estado_actual){
     case INDETERMINADO:

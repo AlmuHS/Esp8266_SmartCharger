@@ -21,6 +21,7 @@ extern Adafruit_MQTT_Subscribe hora_fin_carga;
 extern Adafruit_MQTT_Subscribe orden_carga;
 extern Adafruit_MQTT_Subscribe pregunta_potencia;
 
+// Declaración de la clase para la máquina de estados
 class Estado{
   private:
     lista_estados estado_inicial;
@@ -42,6 +43,7 @@ class Estado{
   
 };
 
+// Declaración de la estructura de programación de carga en el cargador
 struct programa_carga{
   int hora_inicio = 17;
   int min_inicio = 5;
@@ -52,7 +54,8 @@ struct programa_carga{
   int potencia = 4000;
 };
 
-Estado maquina_estados(COCHE_FUERA);
+// Instancia de la máquina de estados
+Estado maquina_estados(INDETERMINADO);
 
 void setup() { 
   Serial.begin(115200);
@@ -60,13 +63,14 @@ void setup() {
   pinMode(SENSORLUZ, INPUT);
 
   conectarWiFi();
-  
+
+  // Conexión de cada objeto MQTT con la función a ejecutar ante cada tipo de mensaje
   hora_inicio_carga.setCallback(hora_inicio_callback);
   hora_fin_carga.setCallback(hora_fin_callback);
   orden_carga.setCallback(orden_callback);
   pregunta_potencia.setCallback(potencia_callback);
   
-  // Setup MQTT subscription for feed.
+  // Suscripciones de los canales, asociados al objeto de cada tipo de mensaje 
   mqtt.subscribe(&hora_inicio_carga);
   mqtt.subscribe(&hora_fin_carga);
   mqtt.subscribe(&orden_carga);
