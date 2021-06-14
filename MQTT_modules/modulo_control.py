@@ -72,20 +72,19 @@ def main():
         client.loop_start()
         
         while True:
-        
                 if (carga_actual_vehiculo < tamano_bateria) and (tamano_bateria > 0):
                         tiempo_carga = (tamano_bateria - carga_actual_vehiculo) / 4 #Tiempo de carga en segundos
                         minutos_carga = tiempo_carga / 60
                 
-                        hora_final, precio = sumar_hora(hora_mas_barata, minutos_carga)
+                        hora_final = sumar_hora(hora_mas_barata, minutos_carga)
                 
                         client.publish('usuario/cargador/hora_inicio', hora_mas_barata)
                         client.publish('usuario/cargador/hora_fin', hora_final)
-                        client.publish('usuario/control/precios', precio)
+                        client.publish('usuario/control/precios', precio_min)
+
+                        print(f'programa carga con inicio {hora_mas_barata} y fin {hora_final}')
         
-                        print(f'programa carga con inicio {hora_inicio} y fin {hora_final}')
-        
-                #time.sleep(1)
+                time.sleep(1)
         
 if __name__ == '__main__':
 	main()

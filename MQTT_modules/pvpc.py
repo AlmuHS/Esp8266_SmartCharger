@@ -51,6 +51,6 @@ if __name__ == '__main__':
         file_dest = "./hora"
         
         with open(file_dest, "w") as file:
-                hora_precio = "{hora_mas_barata};{precio_min}"
+                hora_precio = f"{hora_mas_barata};{precio_min}"
         
                 file.write(hora_precio)
