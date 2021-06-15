@@ -94,6 +94,7 @@ void Estado::coche_aparcado(void){
 
 // Implementa la carga del coche
 void Estado::cargar(void){
+  int luz = lee_sensor(SENSORLUZ);
 
   // Obtiene el tiempo de carga, restando el tiempo actual (ms desde que arrancó el sistema) al tiempo de inicio de la carga
   int tiempo_carga = (millis() - tiempo_inicio_carga)/(1000*60);
@@ -122,6 +123,10 @@ void Estado::cargar(void){
   else if(potencia_acumulada >= programa.potencia){
     this->estado_actual = COCHE_APARCADO;
     publicar_evento(aviso_carga, "termina carga por llegar a potencia maxima");
+  }
+  else if(luz < MIN_LUZ){
+    this->estado_actual = COCHE_FUERA;
+    publicar_evento(coche_llegasale, "sale_coche");
   }
 }
 
