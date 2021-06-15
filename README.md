@@ -196,9 +196,42 @@ Un posible esquema de conexionado será el siguiente:
 
 ![](esquema_circuito.png)
 
+
+#### Montaje
+
+El montaje físico del circuito queda así
+
+![](20210615_195215.jpg)
+
+Podemos tapar el led con un papel doblado, para hacer el efecto de salida del coche
+
+![](20210615_195238.jpg)
+
+### Conexión a red WiFi
+
+Para que el sistema funcione, debemos conectarnos a la red WiFi. Para ello, en el fichero `wifi.ino` debemos editar las constantes `WLAN_SSID` y `WLAN_PASS` con el nombre de la red wifi y su constraseña
+
+	#define WLAN_SSID       "nombre_red_wifi"
+	#define WLAN_PASS       "contrasena"
+
+#### Conexión a MQTT
+
+Para conectarse al servidor MQTT, debemos indicar su dirección IP en el módulo `mqtt.ino`  
+  
+	#define AIO_SERVER      "192.168.X.YYY"
+  
+ Y también deberemos configurar el usuario y contraseña de acceso al mismo
+ 
+	#define AIO_USERNAME    "usuario"
+	#define AIO_KEY         "contraseña"
+	
+Con esto, una vez carguemos el programa en la placa, al abrir el monitor serie veremos algo similar a esto
+
+![](Captura de pantalla de 2021-06-15 18-12-39.png)
+
 ### Monitor serie
 
-Al iniciar el sistema, si el led está encendido (coche presente), veremos algo como esto
+Al iniciar el sistema, y una vez establecida la conexión, si el led está encendido (coche presente), veremos algo como esto
 
 ![](Captura de pantalla de 2021-06-14 21-31-11.png)
 
@@ -274,5 +307,13 @@ También podemos ver como el módulo de carga va recibiendo los eventos correspo
 El sensor del coche también irá registrando los mensajes correspondientes a la potencia acumulada, y publicando los correspondientes a la capacidad
 
 ![](Captura de pantalla de 2021-06-15 02-11-53.png)
+
+## Vídeo demostración
+
+Una demostración del funcionamiento del sistema se puede encontrar en este vídeo
+
+https://www.youtube.com/watch?v=jACpCGMkTqE
+
+
 
 
