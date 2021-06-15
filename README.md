@@ -15,7 +15,7 @@ La implementación de esta práctica se compone de varios módulos:
 
 #### Modulo Cargador Inteligente:
 
-Encargado de controlar el funcionamiento del cargador. Implementado en el esp8266, en el fichero [`practica3.ino`](https://github.com/AlmuHS/Practica_Arduino_MQTT/blob/main/practica3.ino)
+Encargado de controlar el funcionamiento del cargador. Implementado en el esp8266, en el fichero [`practica2.ino`](https://github.com/AlmuHS/Practica_Arduino_MQTT/blob/main/practica2.ino)
 
 ##### Comunicaciones
 
@@ -59,7 +59,7 @@ Si el coche está aparcado, entonces se espera. Si el usuario da la orden de ini
 - En carga programada, se llega a la hora de finalización de carga
 - El coche sale (la carga se interrumpirá)
 
-Tras esto, si el coche no ha salido, se vuelve al estado de "coche aparcado". Si la luminosidad es baja, entonces se vuelve al estado de "coche fuera". En dicho estado, si la luminosidad es alta, se avanza al estado "coche aparcado".
+Tras esto, si el coche no ha salido (en cuyo caso se volverá a "coche fuera"), se vuelve al estado de "coche aparcado". Si la luminosidad es baja, entonces se vuelve al estado de "coche fuera". En dicho estado, si la luminosidad es alta, se avanza al estado "coche aparcado".
 
 ##### Código
 
@@ -161,7 +161,7 @@ La implementación de la comunicación MQTT del cargador con el servidor se impl
 
 Por la parte del esp8266, disponemos de un proyecto Arduino IDE con 6 ficheros:
 
-- practica3.ino: Fichero principal. Implementa la estructura principal del proyecto, con las funciones setup() y loop(), junto a algunas declaraciones de estructuras y objetos necesarios para el sistema.   
+- practica2.ino: Fichero principal. Implementa la estructura principal del proyecto, con las funciones setup() y loop(), junto a algunas declaraciones de estructuras y objetos necesarios para el sistema.   
 
 - maquina_estados.ino: Implementación de la máquina de estados  
 
@@ -185,7 +185,7 @@ Por la parte de la Raspberry Pi, disponemos de una colección de scripts para el
 
 ## Ejecución
 
-Para poner en marcha el sistema, debemos cargar el fichero practica3.ino dentro del esp8266 y, una vez cargado, abrir el monitor serie.
+Para poner en marcha el sistema, debemos cargar el fichero practica2.ino dentro del esp8266 y, una vez cargado, abrir el monitor serie.
 
 ### Circuitería
 
