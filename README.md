@@ -57,8 +57,9 @@ Si el coche está aparcado, entonces se espera. Si el usuario da la orden de ini
 - El usuario da la orden de finalizar la carga
 - La carga acumulada ha llegado al máximo
 - En carga programada, se llega a la hora de finalización de carga
+- El coche sale (la carga se interrumpirá)
 
-Tras esto, se vuelve al estado de "coche aparcado". Si la luminosidad es baja, entonces se vuelve al estado de "coche fuera". En dicho estado, si la luminosidad es alta, se avanza al estado "coche aparcado".
+Tras esto, si el coche no ha salido, se vuelve al estado de "coche aparcado". Si la luminosidad es baja, entonces se vuelve al estado de "coche fuera". En dicho estado, si la luminosidad es alta, se avanza al estado "coche aparcado".
 
 ##### Código
 
