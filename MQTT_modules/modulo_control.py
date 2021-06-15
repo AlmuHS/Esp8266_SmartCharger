@@ -9,7 +9,7 @@ import time
 potencia_instantanea = -1
 carga_actual_vehiculo = -1
 tiempo_carga = -1
-tamano_bateria = 0
+tamano_bateria = 4
 
 def leer_hora_mas_barata():
         hora_mas_barata = "22:25"
@@ -71,8 +71,10 @@ def main():
         
         client.loop_start()
         
+        carga_programada = False
+        
         while True:
-                if (carga_actual_vehiculo < tamano_bateria) and (tamano_bateria > 0):
+                if (carga_actual_vehiculo < tamano_bateria) and (tamano_bateria > 0) and (not carga_programada):
                         tiempo_carga = (tamano_bateria - carga_actual_vehiculo) / 4 #Tiempo de carga en segundos
                         minutos_carga = tiempo_carga / 60
                 
@@ -83,6 +85,8 @@ def main():
                         client.publish('usuario/control/precios', precio_min)
 
                         print(f'programa carga con inicio {hora_mas_barata} y fin {hora_final}')
+        
+                        carga_programada = True
         
                 time.sleep(1)
         
