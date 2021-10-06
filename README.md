@@ -1,5 +1,4 @@
-# Práctica 2
-## Imeter: un cargador de Vehículos eléctricos
+# Imeter: cargador de Vehículos eléctricos
 
 ## Objetivos
 
@@ -7,7 +6,7 @@ El objetivo general del proyecto será la de automatizar la carga de un coche el
 
 ## Implementación
 
-La implementación de esta práctica se realiza en dos extremos: el control del cargador, que se realiza en el esp8266; y los clientes MQTT, que se ejecutan en la Raspberry Pi.
+La implementación de este proyecto se realiza en dos extremos: el control del cargador, que se realiza en el esp8266; y los clientes MQTT, que se ejecutan en la Raspberry Pi.
 
 ### Descripción de los módulos
 
